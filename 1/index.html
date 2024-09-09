@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>CS280A Project 1</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="container">
+      <!-- Header / Jumbotron -->
+      <header class="jumbotron">
+        <div class="header">
+          <h1>Images of the Russian Empire</h1>
+          <h2>Colorizing the Prokudin-Gorskii photo collection</h2>
+          <p></p>
+          <h2>James Smith, CS 280A, Fall 2024</h2>
+        </div>
+      </header>
+
+      <!-- Problem Statement Section -->
+      <section class="problem">
+        <div class="content-area">
+          <h2>Introduction</h2>
+          <p>
+            In 1907, Russian chemist
+            <a href="https://en.wikipedia.org/wiki/Sergey_Prokudin-Gorsky">Sergey Prokudin-Gorsky</a> traveled the
+            Russian Empire taking the worlds first color images. He used a black and white camera and took sets of 3
+            images, each through a blue, green, and red colored film. The results are the
+            <a href="https://www.loc.gov/collections/prokudin-gorskii/">Prokudin-Gorskii Collection</a>. He thought that
+            these images would be reconstructed using a special projector to overlay the images on top of each other,
+            but this plan didn't happen because he fled Russia during the Russian Revolution.
+          </p>
+          <p>
+            The goal for this project is to take digitized versions of his collection from the Library of Congress and
+            reconstruct the color images by automatically cropping and aligning each image in the collection. The output
+            will be 3 channel color images showing the original subject in all its color glory.
+          </p>
+          <div class="gallery">
+            <figure>
+              <img src="img/tobolsk.jpg" alt="Tobolsk captured by Prokudin-Gorskii" />
+              <figcaption>
+                Figure 1: Tobolsk captured by Prokudin-Gorskii. The top images was capture through a blue filter, the
+                middle image through a green filter, and the bottom image through a red filter.
+              </figcaption>
+            </figure>
+          </div>
+        </div>
+      </section>
+
+      <!-- Solution Section -->
+      <section class="solution">
+        <div class="content-area">
+          <h2>Approach</h2>
+          <p>
+            To align the images, two problems must be solved. First, the borders around the images should be trimmed
+            because they can affect the quality of the output. This is done with an automatic algorithm. Then the image
+            is cut into thirds and the red and green channels are aligned to the blue.
+          </p>
+          <p>
+            The input dataset contains some low res (jpg) and some high res (tif) images. For a few of the algorithm
+            features, different parameters were used for each set, and those will be explicitly called out.
+          </p>
+          <h3>Automatic Cropping</h3>
+          <p>
+            Each input image has a white border and then a black border that should be cropped in order to provide
+            better output. One observation about the input images is that if you take a given column of pixels, if the
+            majority are all white or all black, they are most likely a border because the content of the images is
+            rarely all black or white. These borders are detected by starting at each edge of the image (left, right,
+            top, bottom), and iterating inward one row or column at a time. If a row or column is mostly all white or
+            mostly all black, they will be cropped.
+          </p>
+          <p>
+            The issue is that these borders are not always pure white (r: 255, r: 255, r: 255) or pure black (r: 0, g:
+            0, b: 0). This can be due to quantization error (noise) or aliasing if the image isn't perfectly square to
+            the camera, some columns may have a partial white border and black border (See Figure 2 for examples). Two
+            functions were implemented to help with this problem.
+          </p>
+          <h4>Thresholding</h4>
+          <p>
+            Some thresholding is applied to help segment the borders. Any pixel with a value below 75 is turned
+            completely black, and any pixel value above 175 is turned completely white. This makes it easier to pick out
+            the borders (See Figure 3).
+          </p>
+          <pre>
+    Threshold Values
+    black = [0, 75)
+    white = (175, 255]
+        </pre
+          >
+          <div class="gallery">
+            <figure>
+              <img src="img/border_example.png" alt="A closeup of the Tobolsk image showing the two borders" />
+              <figcaption>
+                Figure 2: A closeup of the Tobolsk image border. From left to right, the white border is visible, then
+                the black, then the image data. Notice that a significant part of the black border is lighter than the
+                rest.
+              </figcaption>
+            </figure>
+            <figure>
+              <img
+                src="img/border_thresh_example.png"
+                alt="The same closeup as Figure 2, but now with the thresholding applied"
+              />
+              <figcaption>Figure 3: The same closeup of Tobolsk, but with the thresholding applied.</figcaption>
+            </figure>
+          </div>
+          <h4>Look Ahead</h4>
+          <p>
+            There are some cases where a column would not be detected as a border while searching. A look ahead method
+            was implemented to solve this. The way this works is that when a column is detect as not a border, the
+            algorithm continues searching for a border for a few extra columns. If a border is detected during this look
+            ahead period, the search continues at that point. If a border is not detected, then the original stopping
+            point is used. Different look ahead values were used for the low and high res images.
+          </p>
+          <pre>
+    Look Ahead Values
+    jpg = 2
+    tif = 6
+            </pre
+          >
+          <div class="gallery">
+            <figure>
+              <img src="img/tobolsk_lines.jpg" alt="Tobolsk image with crop lines added" />
+              <figcaption>
+                Figure 4: Tobolsk image with red lines drawn to show where the borders were cropped.
+              </figcaption>
+            </figure>
+          </div>
+          <h3>Image Alignment</h3>
+          <p>
+            Now that we have the borders cropped, we cut the image into thirds to get the final blue, green and red
+            channel images. See Figure 5 for an example of these cropped images. Notice that the inner borders are
+            visible in some channels, but that doesn't seem to have as much of an impact on the algorithm performance as
+            having outer borders present.
+          </p>
+          <div class="gallery">
+            <figure>
+              <img src="img/tobolsk_trimmed_b.jpg" alt="" />
+              <figcaption>Figure 5: Tobolsk Blue Channel</figcaption>
+            </figure>
+            <figure>
+              <img src="img/tobolsk_trimmed_g.jpg" alt="" />
+              <figcaption>Figure 6: Tobolsk Green Channel</figcaption>
+            </figure>
+            <figure>
+              <img src="img/tobolsk_trimmed_r.jpg" alt="" />
+              <figcaption>Figure 7: Tobolsk Red Channel</figcaption>
+            </figure>
+          </div>
+          <h4>Canny Edge Detector</h4>
+          <p>
+            The content in each of these images are correlated by are hard to match with an alignment because there are
+            different intensities in each channel. One observation is that the borders between objects in the image stay
+            the same despite the objects having different intensities in each image. To utilize this observation, each
+            channel is processed with a Canny Edge Detector, which draws lines at the edges between shapes in the image.
+          </p>
+          <div class="gallery">
+            <figure>
+              <img src="img/tobolsk_trimmed_b_canny.jpg" alt="Tobolsk image with crop lines added" />
+              <figcaption>Figure 8: Tobolsk Blue Channel with Canny Edge Filter applied</figcaption>
+            </figure>
+            <figure>
+              <img src="img/tobolsk_trimmed_g_canny.jpg" alt="Tobolsk image with crop lines added" />
+              <figcaption>Figure 9: Tobolsk Green Channel with Canny Edge Filter applied</figcaption>
+            </figure>
+            <figure>
+              <img src="img/tobolsk_trimmed_r_canny.jpg" alt="Tobolsk image with crop lines added" />
+              <figcaption>Figure 10: Tobolsk Red Channel with Canny Edge Filter applied</figcaption>
+            </figure>
+          </div>
+          <p>
+            The red and green images plus some offset are each compared to the blue image. A simple
+            <b>L2-Norm</b> proved to be really effective on the Canny processed images, and was quite fast, so that was
+            used to determine when two images were aligned. A window of possible offsets was used to compare the images
+            in the range of [-15, 15] along each axis of the image.
+          </p>
+          <h4>Pyramid</h4>
+          <p>
+            For the larger images, it is computational quite expensive to search over the [-15, 15] window. To optimize
+            this process a pyramid of different image resolution is computed. Each layer of the pyramid is 1/2 the
+            resolution of the prior, and a pyramid is computed to a depth of 5 layers. This allows is to search over a
+            much smaller window of [-5, 5], which is 200 fewer checks that need to be made (or about 1/10th the amount
+            of computation, per layer).
+          </p>
+          <pre>
+    Search window
+    jpg = [-15, 15]
+    tif = [-5, 5]
+          </pre>
+        </div>
+      </section>
+
+      <section class="results">
+        <h2>Results</h2>
+        <p>
+          Each channel is then stacked with the various offsets and presented as a complete color image. Here are the
+          result images for the input dataset, as well as the offsets computed for each channel in the format [x, y].
+        </p>
+        <p>
+          <b
+            >As a bonus here, each image can be clicked on to view the unaligned version. It's fun to be able to toggle
+            back and forth to see the improvement!</b
+          >
+        </p>
+        <div class="gallery gallery-large">
+          <figure class="align-click">
+            <img src="img/out/cathedral_final.jpg" alt="" />
+            <figcaption>
+              <b>Cathedral</b>
+              <div class="roffset">R Offset: [3, 14]</div>
+              <div class="goffset">G Offset: [2, -8]</div>
+            </figcaption>
+          </figure>
+          <figure class="align-click">
+            <img src="img/out/church_final.jpg" alt="" />
+            <figcaption>
+              <b>Church</b>
+              <div class="roffset">R Offset: [-4, -134]</div>
+              <div class="goffset">G Offset: [4, -71]</div>
+            </figcaption>
+          </figure>
+          <figure class="align-click">
+            <img src="img/out/emir_final.jpg" alt="" />
+            <figcaption>
+              <b>Emir</b>
+              <div class="roffset">R Offset: [40, -97]</div>
+              <div class="goffset">G Offset: [23, -53]</div>
+            </figcaption>
+          </figure>
+          <figure class="align-click">
+            <img src="img/out/harvesters_final.jpg" alt="" />
+            <figcaption>
+              <b>Harvesters</b>
+              <div class="roffset">R Offset: [11, -129]</div>
+              <div class="goffset">G Offset: [10, -68]</div>
+            </figcaption>
+          </figure>
+          <figure class="align-click">
+            <img src="img/out/icon_final.jpg" alt="" />
+            <figcaption>
+              <b>Icon</b>
+              <div class="roffset">R Offset: [22, -144]</div>
+              <div class="goffset">G Offset: [16, -78]</div>
+            </figcaption>
+          </figure>
+          <figure class="align-click">
+            <img src="img/out/lady_final.jpg" alt="" />
+            <figcaption>
+              <b>Lady</b>
+              <div class="roffset">R Offset: [13, -66]</div>
+              <div class="goffset">G Offset: [10, -37]</div>
+            </figcaption>
+          </figure>
+          <figure class="align-click">
+            <img src="img/out/melons_final.jpg" alt="" />
+            <figcaption>
+              <b>Melons</b>
+              <div class="roffset">R Offset: [11, -88]</div>
+              <div class="goffset">G Offset: [9, -46]</div>
+            </figcaption>
+          </figure>
+          <figure class="align-click">
+            <img src="img/out/monastery_final.jpg" alt="" />
+            <figcaption>
+              <b>Monastery</b>
+              <div class="roffset">R Offset: [0, -11]</div>
+              <div class="goffset">G Offset: [2, -13]</div>
+            </figcaption>
+          </figure>
+          <figure class="align-click">
+            <img src="img/out/onion_church_final.jpg" alt="" />
+            <figcaption>
+              <b>Onion Church</b>
+              <div class="roffset">R Offset: [34, -113]</div>
+              <div class="goffset">G Offset: [24, -58]</div>
+            </figcaption>
+          </figure>
+          <figure class="align-click">
+            <img src="img/out/sculpture_final.jpg" alt="" />
+            <figcaption>
+              <b>Sculpture</b>
+              <div class="roffset">R Offset: [-27, -44]</div>
+              <div class="goffset">G Offset: [-11, -59]</div>
+            </figcaption>
+          </figure>
+          <figure class="align-click">
+            <img src="img/out/self_portrait_final.jpg" alt="" />
+            <figcaption>
+              <b>Self Portrait</b>
+              <div class="roffset">R Offset: [37, -127]</div>
+              <div class="goffset">G Offset: [29, -74]</div>
+            </figcaption>
+          </figure>
+          <figure class="align-click">
+            <img src="img/out/three_generations_final.jpg" alt="" />
+            <figcaption>
+              <b>Three Generations</b>
+              <div class="roffset">R Offset: [7, -104]</div>
+              <div class="goffset">G Offset: [11, -49]</div>
+            </figcaption>
+          </figure>
+          <figure class="align-click">
+            <img src="img/out/tobolsk_final.jpg" alt="" />
+            <figcaption>
+              <b>Tobolsk</b>
+              <div class="roffset">R Offset: [3, -15]</div>
+              <div class="goffset">G Offset: [3, -8]</div>
+            </figcaption>
+          </figure>
+          <figure class="align-click">
+            <img src="img/out/train_final.jpg" alt="" />
+            <figcaption>
+              <b>Train</b>
+              <div class="roffset">R Offset: [28, -116]</div>
+              <div class="goffset">G Offset: [2, -52]</div>
+            </figcaption>
+          </figure>
+        </div>
+      </section>
+
+      <!-- Extra Credit Section -->
+      <section class="extra-credit">
+        <h2>Extra Items</h2>
+        <p>
+          In addition to the <b>Automatic Cropping</b> and <b>Canny Edge Based Alignment</b> as described earlier, here
+          are a few other extra items that were implemented.
+        </p>
+        <h3>Additional Images</h3>
+        <p>
+          There are many images in the collection, so here are a few other examples from the collection aligned with the
+          same algorithm.
+        </p>
+        <div class="gallery gallery-large">
+          <figure class="align-click">
+            <img src="img/out/finland_final.jpg" alt="" />
+            <figcaption>
+              <b>Finland</b>
+              <div class="roffset">R Offset: [-6, -49]</div>
+              <div class="goffset">G Offset: [-1, -61]</div>
+            </figcaption>
+          </figure>
+          <figure class="align-click">
+            <img src="img/out/lilacs_final.jpg" alt="" />
+            <figcaption>
+              <b>Lilacs</b>
+              <div class="roffset">R Offset: [-23, -252]</div>
+              <div class="goffset">G Offset: [-8, -126]</div>
+            </figcaption>
+          </figure>
+          <figure class="align-click">
+            <img src="img/out/ordezh_river_final.jpg" alt="" />
+            <figcaption>
+              <b>Ordezh River</b>
+              <div class="roffset">R Offset: [8, -49]</div>
+              <div class="goffset">G Offset: [5, -59]</div>
+            </figcaption>
+          </figure>
+          <figure class="align-click">
+            <img src="img/out/yurt_final.jpg" alt="" />
+            <figcaption>
+              <b>Yurt</b>
+              <div class="roffset">R Offset: [49, -81]</div>
+              <div class="goffset">G Offset: [32, -45]</div>
+            </figcaption>
+          </figure>
+        </div>
+        <h3>What's with these people?</h3>
+        <p>
+          One observation is that alignment never looks great on images with people that are standing. One hypothesis is
+          that this is because some of the people are moving in between pictures. It should be possible to build a small
+          interface to toggle between each image image after alignment to see who in the image is a fidgeter.
+        </p>
+        <p><b>This section is also interactive!</b></p>
+        <div class="gallery gallery-large">
+          <figure class="aligned">
+            <img src="img/aligned/emir_aligned_b.jpg" alt="" />
+            <figcaption>
+              <b>Emir (Blue Channel)</b><br /><input
+                type="range"
+                id="slider"
+                name="emir_slider"
+                min="0"
+                max="2"
+                value="0"
+              />
+              <br />
+              His head moves a tiny bit in the Blue Channel image...
+            </figcaption>
+          </figure>
+          <figure class="aligned">
+            <img src="img/aligned/harvesters_aligned_b.jpg" alt="" />
+            <figcaption>
+              <b>Harvesters (Blue Channel)</b><br /><input
+                type="range"
+                id="slider"
+                name="harvesters_slider"
+                min="0"
+                max="2"
+                value="0"
+              />
+              <br />
+              We can see there are 2 people on the left that move a lot.
+            </figcaption>
+          </figure>
+          <figure class="aligned">
+            <img src="img/aligned/three_generations_aligned_b.jpg" alt="" />
+            <figcaption>
+              <b>Three Generations (Blue Channel)</b><br /><input
+                type="range"
+                id="slider"
+                name="three_slider"
+                min="0"
+                max="2"
+                value="0"
+              /><br />
+              The woman on the right moves a little.
+            </figcaption>
+          </figure>
+          <figure class="aligned">
+            <img src="img/aligned/yurt_aligned_b.jpg" alt="" />
+            <figcaption>
+              <b>Yurt (Blue Channel)</b><br /><input
+                type="range"
+                id="slider"
+                name="yurt_slider"
+                min="0"
+                max="2"
+                value="0"
+              />
+              <br />
+              These people are all very stationary!
+            </figcaption>
+          </figure>
+        </div>
+      </section>
+    </div>
+    <script>
+      // pretty quick hacks to get the interactions working. might not work for all images we would ever want to put on here
+
+      // click on the gallery images to swap to the unaligned versions
+      // const gallery_large = document.querySelectorAll(".gallery-large");
+
+      // gallery_large.forEach((gallery) => {
+      const swap_figs = document.querySelectorAll(".align-click");
+      swap_figs.forEach((fig) => {
+        const img = fig.querySelector("img");
+        const label = fig.querySelector("figcaption b");
+        const offsetR = fig.querySelector(".roffset");
+        const offsetG = fig.querySelector(".goffset");
+
+        const originalLabel = label.innerText;
+        const originalOffsetR = offsetR.innerText;
+        const originalOffsetG = offsetG.innerText;
+
+        label.innerText = originalLabel + " (Aligned)";
+
+        img.addEventListener("click", (e) => {
+          const src = img.src;
+          if (src.includes("final")) {
+            img.src = src.replace("_final", "_base");
+            label.innerText = originalLabel + " (Unaligned)";
+            offsetR.innerText = "R Offset: [0, 0]";
+            offsetG.innerText = "G Offset: [0, 0]";
+          } else if (src.includes("base")) {
+            img.src = src.replace("_base", "_final");
+            label.innerText = originalLabel + " (Aligned)";
+            offsetR.innerText = originalOffsetR;
+            offsetG.innerText = originalOffsetG;
+          }
+        });
+      });
+      // });
+
+      // Do the alignment extra items
+      const align_figs = document.querySelectorAll(".aligned");
+      align_figs.forEach((fig) => {
+        const slider = fig.querySelector("input");
+        const img = fig.querySelector("img");
+        const label = fig.querySelector("b");
+        slider.addEventListener("input", (e) => {
+          img.src = img.src.replace(/_[bgr]\./, `_${["b", "g", "r"][parseInt(e.target.value)]}\.`);
+          label.innerText = label.innerText.replace(
+            /(Blue|Green|Red)/,
+            ["Blue", "Green", "Red"][parseInt(e.target.value)]
+          );
+        });
+      });
+    </script>
+  </body>
+</html>
