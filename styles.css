@@ -35,15 +35,25 @@ h1 {
   width: 300px;
   border-radius: 8px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  margin: 20px;
 }
 
 .project-card .image {
   width: 300px;
   height: 200px;
+  border-radius: 8px 8px 0 0;
+}
+
+.proj1 .image {
   background-image: url("1/img/out/onion_church_final.jpg");
   background-size: cover;
   background-position: 50% 10%;
-  border-radius: 8px 8px 0 0;
+}
+
+.proj2 .image {
+  background-image: url("2/img/out/blended/blended_football_watermelon.jpg");
+  background-size: cover;
+  background-position: 50% 25%;
 }
 
 .project-card .label {

@@ -1,0 +1,546 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>CS280A Project 2</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="container">
+      <header class="jumbotron">
+        <div class="header">
+          <h1>Fun with Filters and Frequencies!</h1>
+          <p></p>
+          <h2>James Smith, CS 280A, Fall 2024</h2>
+        </div>
+      </header>
+
+      <section class="solution">
+        <div class="content-area">
+          <h2>Part 1.1 - The Finite Difference Operator</h2>
+          <p>One important feature of images to be able to process is edges. These can often be more useful than looking at the values of pixels for determining what is in an image. One method for this is the finite difference operators Dx and Dy.</p>
+          <img class="diff" src="img/diff_op.png" />
+          <p>When convolved with an image, these operators will find the vertical and horizontal edges (respectfully). These edge images can be used to compute edge gradients, the magnitude of which represent overall lines in an image.</p>
+          <div class="gallery-5">
+            <figure>
+              <img src="img/cameraman.png" alt="" />
+              <figcaption>Cameraman Image</figcaption>
+            </figure>
+            <figure>
+              <img src="img/out/cameraman_dx.jpg" alt="" />
+              <figcaption>Dx filtered</figcaption>
+            </figure>
+            <figure>
+              <img src="img/out/cameraman_dy.jpg" alt="" />
+              <figcaption>Dy filtered</figcaption>
+            </figure>
+            <figure>
+              <img src="img/out/cameraman_combined.jpg" alt="" />
+              <figcaption>Gradient Image</figcaption>
+            </figure>
+            <figure>
+              <img src="img/out/cameraman_combined_filtered.jpg" alt="" />
+              <figcaption>Edge Detection</figcaption>
+            </figure>
+          </div>
+        </div>
+      </section>
+
+      <section class="solution">
+        <div class="content-area">
+          <h2>Part 1.2 - Derivative of Gaussian (DoG) Filter</h2>
+          <p>One issue with the previous step is that the results are quite noisey and details are lost when thresholding is applied. Therefore we apply a gaussian blur to the image and repeat the same steps.</p>
+          <div class="gallery-5">
+            <figure>
+              <img src="img/out/cameraman_gaussian.jpg" alt="" />
+              <figcaption>Cameraman Image Blurred</figcaption>
+            </figure>
+            <figure>
+              <img src="img/out/cameraman_gaussian_dx.jpg" alt="" />
+              <figcaption>Dx filtered</figcaption>
+            </figure>
+            <figure>
+              <img src="img/out/cameraman_gaussian_dy.jpg" alt="" />
+              <figcaption>Dy filtered</figcaption>
+            </figure>
+            <figure>
+              <img src="img/out/cameraman_gaussian_combined.jpg" alt="" />
+              <figcaption>Gradient Image</figcaption>
+            </figure>
+            <figure>
+              <img src="img/out/cameraman_gaussian_combined_filtered.jpg" alt="" />
+              <figcaption>Edge Detection</figcaption>
+            </figure>
+          </div>
+          <h3>Derivative of Gaussian</h3>
+          <p>Apply a gaussian blur to an image can be an expensive process. We can significantly speed the process up by applying the blur to the finite difference operators, and then convolving those with the base image. This is possible due to the commutative property of convolutions, which is due to convolutions being linear operations.</p>
+          <div class="gallery">
+            <figure>
+              <img class="dog" src="img/out/dogX.jpg" alt="" />
+              <figcaption>Gaussian convolved with Dx</figcaption>
+            </figure>
+            <figure>
+              <img class="dog" src="img/out/dogY.jpg" alt="" />
+              <figcaption>Gaussian convolved with Dy</figcaption>
+            </figure>
+          </div>
+          <div class="gallery-5">
+            <figure>
+              <img src="img/cameraman.png" alt="" />
+              <figcaption>Cameraman Image</figcaption>
+            </figure>
+            <figure>
+              <img src="img/out/cameraman_DoG_dx.jpg" alt="" />
+              <figcaption>DoG x filtered</figcaption>
+            </figure>
+            <figure>
+              <img src="img/out/cameraman_DoG_dy.jpg" alt="" />
+              <figcaption>DoG y filtered</figcaption>
+            </figure>
+            <figure>
+              <img src="img/out/cameraman_DoG_combined.jpg" alt="" />
+              <figcaption>Gradient Image</figcaption>
+            </figure>
+            <figure>
+              <img src="img/out/cameraman_DoG_combined_filtered.jpg" alt="" />
+              <figcaption>Edge Detection</figcaption>
+            </figure>
+          </div>
+          <p>We observe that these results are the same as above.</p>
+        </div>
+      </section>
+
+      <section class="solution">
+        <div class="content-area">
+          <h2>Part 2.1 - Image Sharpening</h2>
+          <p>Another applications of gaussian blurring is being able to extract high frequencies. This is done using the unsharp mask filter, which is the unit impulse subtracted by the gaussian filter.</p>
+          <img class="unmask" src="img/unmask.png" />
+          <p>This filter can be applied to an image and then added back onto the original image with some gain. For each of these examples we use a gain of 1 because anything higher is too ugly.</p>
+
+          <p><strong>For each of the sharpened images, you can hover over them to view the original image for an easy comparison of the effects.</strong></p>
+
+          <h3>Taj Mahal</h3>
+          <div class="gallery">
+            <figure>
+              <img src="img/taj.jpg" alt="" />
+              <figcaption>Original (Taj Mahal)</figcaption>
+            </figure>
+            <figure>
+              <img src="img/out/taj_gaussian.jpg" alt="" />
+              <figcaption>Gaussian Blurred</figcaption>
+            </figure>
+            <figure>
+              <img src="img/out/taj_high_freq.jpg" alt="" />
+              <figcaption>High Frequency</figcaption>
+            </figure>
+            <figure class="toggle-sharp">
+              <img src="img/out/taj_sharpened.jpg" alt="" />
+              <figcaption>Sharpened</figcaption>
+            </figure>
+          </div>
+
+          <h3>California Spring</h3>
+          <p>Here is the same algorithm run on a few pictures I took. The first is of Albert Bierstadt's <i>California Spring</i> painted in 1875.</p>
+          <div class="gallery-large">
+            <figure>
+              <img src="img/out/painting.jpg" alt="" />
+              <figcaption>Original (California Spring)</figcaption>
+            </figure>
+            <figure>
+              <img src="img/out/painting_gaussian.jpg" alt="" />
+              <figcaption>Gaussian Blurred</figcaption>
+            </figure>
+            <figure>
+              <img src="img/out/painting_high_freq.jpg" alt="" />
+              <figcaption>High Frequency</figcaption>
+            </figure>
+            <figure class="toggle-sharp">
+              <img src="img/out/painting_sharpened.jpg" alt="" />
+              <figcaption>Sharpened</figcaption>
+            </figure>
+          </div>
+
+          <h3>Lisbon</h3>
+          <p>The second image is Lisbon, Portugal taken from Castelo de São Jorge.</p>
+          <div class="gallery-large">
+            <figure>
+              <img src="img/out/lisbon.jpg" alt="" />
+              <figcaption>Original (Lisbon)</figcaption>
+            </figure>
+            <figure>
+              <img src="img/out/lisbon_gaussian.jpg" alt="" />
+              <figcaption>Gaussian Blurred</figcaption>
+            </figure>
+            <figure>
+              <img src="img/out/lisbon_high_freq.jpg" alt="" />
+              <figcaption>High Frequency</figcaption>
+            </figure>
+            <figure class="toggle-sharp">
+              <img src="img/out/lisbon_sharpened.jpg" alt="" />
+              <figcaption>Sharpened</figcaption>
+            </figure>
+          </div>
+        </div>
+      </section>
+
+      <section class="solution">
+        <div class="content-area">
+          <h2>Part 2.2 - Hybrid Images</h2>
+          <p>These types of images are created by taking one image's low frequencies and combining them with a different image's high frequencies. This allows two different images to be viewed depending on the viewing distance. The reason we see two images is due to a feature of our perception where signals at certain frequences aren't as visible at different distances.</p>
+          <p>Each image is gaussian blurred at a specific sigma value (either sigma1 for low frequency images, or signma2 for high frequency images). This blurred image is subtracted from the original image only in the high frequency case. The sigmas for each example are displayed below.</p>
+          <h3>Derek and Nutmeg</h3>
+          <p>These are the example images provided with the assignment.</p>
+          <pre>
+            sigma1 = 10
+            sigma2 = 14
+          </pre>
+          <div class="gallery">
+            <figure>
+              <img src="img/DerekPicture.jpg" alt="" />
+              <figcaption>Image 1 (DerekPicture)</figcaption>
+            </figure>
+            <figure>
+              <img src="img/nutmeg.jpg" alt="" />
+              <figcaption>Image 2 (Nutmeg)</figcaption>
+            </figure>
+            <figure>
+              <img src="img/out/DerekPicture_aligned_nutmeg_aligned_hybrid.jpg" alt="" />
+              <figcaption>Hybrid Image</figcaption>
+            </figure>
+          </div>
+
+          <h3>Keanu Reeves, Young and Old (Failure)</h3>
+          <p>I consider it a failure due to the ribbon on his suit in the older picture. It's difficult to find any range that gets rid of it. This is probably due to the fact that there is essentially nothing in that part of the image on the young picture.</p>
+          <pre>
+            sigma1 = 3
+            sigma2 = 3
+          </pre>
+          <div class="gallery">
+            <figure>
+              <img src="img/out/keanu_young.png" alt="" />
+              <figcaption>Image 1 (Young)</figcaption>
+            </figure>
+            <figure>
+              <img src="img/out/keanu_old.png" alt="" />
+              <figcaption>Image 2 (Old)</figcaption>
+            </figure>
+            <figure>
+              <img src="img/out/keanu_young_keanu_old_hybrid.jpg" alt="" />
+              <figcaption>Hybrid Image</figcaption>
+            </figure>
+          </div>
+
+          <h3>Hank Schrader Meme</h3>
+          <p>This is a pretty convenient meme image because it's already aligned and shows two extreme expressions.</p>
+          <pre>
+            sigma1 = 3
+            sigma2 = 4
+          </pre>
+          <div class="gallery">
+            <figure>
+              <img src="img/out/mad.png" alt="" />
+              <figcaption>Image 1 (DerekPicture)</figcaption>
+            </figure>
+            <figure>
+              <img src="img/out/glad.png" alt="" />
+              <figcaption>Image 2 (Nutmeg)</figcaption>
+            </figure>
+            <figure>
+              <img src="img/out/mad_glad_hybrid.jpg" alt="" />
+              <figcaption>Hybrid Image</figcaption>
+            </figure>
+          </div>
+          <p>Looking at the FFT for the Hank Schrader Meme example (in this case done in grayscale so that the FFT is easier) we can see features in the FFT get merged into the single image.</p>
+          <div class="gallery">
+            <figure>
+              <img src="img/out/hybrid_low_freq.jpg" alt="" />
+              <figcaption>Low Frequency Image</figcaption>
+            </figure>
+            <figure>
+              <img src="img/out/hybrid_low_freq_fft.jpg" alt="" />
+              <figcaption>Low Frequency Image FFT</figcaption>
+            </figure>
+          </div>
+          <div class="gallery">
+            <figure>
+              <img src="img/out/hybrid_high_freq.jpg" alt="" />
+              <figcaption>Low Frequency Image</figcaption>
+            </figure>
+            <figure>
+              <img src="img/out/hybrid_high_freq_fft.jpg" alt="" />
+              <figcaption>Low Frequency Image FFT</figcaption>
+            </figure>
+          </div>
+          <div class="gallery">
+            <figure>
+              <img src="img/out/mad_glad_hybrid_bw.jpg" alt="" />
+              <figcaption>Hybrid Image</figcaption>
+            </figure>
+            <figure>
+              <img src="img/out/hybrid_out_fft.jpg" alt="" />
+              <figcaption>Hybrid Image FFT</figcaption>
+            </figure>
+          </div>
+        </div>
+      </section>
+
+      <section class="solution">
+        <div class="content-area">
+          <h2>Part 2.3 - Gaussian and Laplacian Stacks</h2>
+          <p>Gaussian and Laplacian stacks are useful image filtering devices. Gaussian stacks are created by applying a gaussian filter to an image over and over, and saving out a copy each time. Laplacian stacks are created using the Gaussian Stack by subtracting adjacent layers to find the difference between each. This lets us extract a "band" of frequencies from the image based on the gaussian kernel size.</p>
+          <p>The gaussian kernel size is determined empirically, and in this case a <b>kernel size of 31</b> was used for this set of images.</p>
+          <p>The laplacian images are shown using a normalization function that remaps the lowest and highest values in the frequency band in a range from [0, 1].</p>
+          <div class="gallery-5">
+            <div class="side-label">Apple Gaussian</div>
+            <figure>
+              <img src="img/out/pyramids/apple_gaussian_0.jpg" alt="" />
+              <figcaption>Layer 0</figcaption>
+            </figure>
+            <figure>
+              <img src="img/out/pyramids/apple_gaussian_1.jpg" alt="" />
+              <figcaption>Layer 1</figcaption>
+            </figure>
+            <figure>
+              <img src="img/out/pyramids/apple_gaussian_2.jpg" alt="" />
+              <figcaption>Layer 2</figcaption>
+            </figure>
+            <figure>
+              <img src="img/out/pyramids/apple_gaussian_3.jpg" alt="" />
+              <figcaption>Layer 3</figcaption>
+            </figure>
+            <figure>
+              <img src="img/out/pyramids/apple_gaussian_4.jpg" alt="" />
+              <figcaption>Layer 4</figcaption>
+            </figure>
+          </div>
+          <div class="gallery-5">
+            <div class="side-label">Apple Laplacian</div>
+            <figure>
+              <img src="img/out/pyramids/apple_laplacian_0.jpg" alt="" />
+              <figcaption>Layer 0</figcaption>
+            </figure>
+            <figure>
+              <img src="img/out/pyramids/apple_laplacian_1.jpg" alt="" />
+              <figcaption>Layer 1</figcaption>
+            </figure>
+            <figure>
+              <img src="img/out/pyramids/apple_laplacian_2.jpg" alt="" />
+              <figcaption>Layer 2</figcaption>
+            </figure>
+            <figure>
+              <img src="img/out/pyramids/apple_laplacian_3.jpg" alt="" />
+              <figcaption>Layer 3</figcaption>
+            </figure>
+            <figure>
+              <img src="img/out/pyramids/apple_laplacian_4.jpg" alt="" />
+              <figcaption>Layer 4</figcaption>
+            </figure>
+          </div>
+          <div class="gallery-5">
+            <div class="side-label">Orange Gaussian</div>
+            <figure>
+              <img src="img/out/pyramids/orange_gaussian_0.jpg" alt="" />
+              <figcaption>Layer 0</figcaption>
+            </figure>
+            <figure>
+              <img src="img/out/pyramids/orange_gaussian_1.jpg" alt="" />
+              <figcaption>Layer 1</figcaption>
+            </figure>
+            <figure>
+              <img src="img/out/pyramids/orange_gaussian_2.jpg" alt="" />
+              <figcaption>Layer 2</figcaption>
+            </figure>
+            <figure>
+              <img src="img/out/pyramids/orange_gaussian_3.jpg" alt="" />
+              <figcaption>Layer 3</figcaption>
+            </figure>
+            <figure>
+              <img src="img/out/pyramids/orange_gaussian_4.jpg" alt="" />
+              <figcaption>Layer 4</figcaption>
+            </figure>
+          </div>
+          <div class="gallery-5">
+            <div class="side-label">Orange Laplacian</div>
+            <figure>
+              <img src="img/out/pyramids/orange_laplacian_0.jpg" alt="" />
+              <figcaption>Layer 0</figcaption>
+            </figure>
+            <figure>
+              <img src="img/out/pyramids/orange_laplacian_1.jpg" alt="" />
+              <figcaption>Layer 1</figcaption>
+            </figure>
+            <figure>
+              <img src="img/out/pyramids/orange_laplacian_2.jpg" alt="" />
+              <figcaption>Layer 2</figcaption>
+            </figure>
+            <figure>
+              <img src="img/out/pyramids/orange_laplacian_3.jpg" alt="" />
+              <figcaption>Layer 3</figcaption>
+            </figure>
+            <figure>
+              <img src="img/out/pyramids/orange_laplacian_4.jpg" alt="" />
+              <figcaption>Layer 4</figcaption>
+            </figure>
+          </div>
+        </div>
+      </section>
+
+      <section class="solution">
+        <div class="content-area">
+          <h2>Part 2.4 - Multiresolution Blending</h2>
+          <p>Multiresolution blending is a technique for combining two images. It is done by breaking the images down into their respective laplacian stacks, effectively separating various frequency bands of each image. Then each image is blended together at these different bands using a different alpha mask, which has also been blurred for each band (gaussian stack). When combined there are no visible edges or borders on the final image.</p>
+          <h3>The Oraple</h3>
+          <p>Here is an example of the algorithm working on the Oraple example.</p>
+          <div class="gallery">
+            <figure>
+              <img src="img/apple.jpeg" alt="" />
+              <figcaption>Image 1 (Apple)</figcaption>
+            </figure>
+            <figure>
+              <img src="img/orange.jpeg" alt="" />
+              <figcaption>Image 2 (Orange)</figcaption>
+            </figure>
+            <figure>
+              <img src="img/out/blended/mask_0.jpg" alt="" />
+              <figcaption>Mask</figcaption>
+            </figure>
+            <figure>
+              <img src="img/out/blended/blended.jpg" alt="" />
+              <figcaption>Oraple</figcaption>
+            </figure>
+          </div>
+          <h3>The Footmelon</h3>
+          <p>Can we also blend fruits with non-fruits? Science says "Why not?"</p>
+          <div class="gallery">
+            <figure>
+              <img src="img/out/blended/football.png" alt="" />
+              <figcaption>Image 1 (Football)</figcaption>
+            </figure>
+            <figure>
+              <img src="img/out/blended/watermelon.png" alt="" />
+              <figcaption>Image 2 (Watermelon)</figcaption>
+            </figure>
+            <figure>
+              <img src="img/out/blended/football_mask_0.jpg" alt="" />
+              <figcaption>Mask</figcaption>
+            </figure>
+            <figure>
+              <img src="img/out/blended/blended_football_watermelon.jpg" alt="" />
+              <figcaption>Footmelon</figcaption>
+            </figure>
+          </div>
+          <h3>The Hummingfish</h3>
+          <p>If birds were real, then this wouldn't be possible... This method was done using a separate image as a mask, instead of splitting the image into two halves.</p>
+          <div class="gallery-wide">
+            <figure>
+              <img src="img/out/blended/bird.png" alt="" />
+              <figcaption>Image 1 (Hummingbird)</figcaption>
+            </figure>
+            <figure>
+              <img src="img/out/blended/turtle.png" alt="" />
+              <figcaption>Image 2 (Underwater Scene)</figcaption>
+            </figure>
+            <figure>
+              <img src="img/out/blended/bird_mask.png" alt="" />
+              <figcaption>Mask</figcaption>
+            </figure>
+            <figure>
+              <img src="img/out/blended/blended_bird_turtle.jpg" alt="" />
+              <figcaption>Hummingfish</figcaption>
+            </figure>
+          </div>
+          <h3>Blending Details (Footmelon)</h3>
+          <p>Here is an example of what each layer of the laplacian stacks look like for the footmelon example.</p>
+          <div class="gallery-3">
+            <div class="side-label">Layer 0</div>
+            <figure>
+              <img src="img/out/blended/football_0.jpg" alt="" />
+            </figure>
+            <figure>
+              <img src="img/out/blended/watermelon_0.jpg" alt="" />
+            </figure>
+            <figure>
+              <img src="img/out/blended/football_watermelon_0.jpg" alt="" />
+            </figure>
+
+            <div class="side-label">Layer 1</div>
+            <figure>
+              <img src="img/out/blended/football_1.jpg" alt="" />
+            </figure>
+            <figure>
+              <img src="img/out/blended/watermelon_1.jpg" alt="" />
+            </figure>
+            <figure>
+              <img src="img/out/blended/football_watermelon_1.jpg" alt="" />
+            </figure>
+
+            <div class="side-label">Layer 2</div>
+            <figure>
+              <img src="img/out/blended/football_2.jpg" alt="" />
+            </figure>
+            <figure>
+              <img src="img/out/blended/watermelon_2.jpg" alt="" />
+            </figure>
+            <figure>
+              <img src="img/out/blended/football_watermelon_2.jpg" alt="" />
+            </figure>
+
+            <div class="side-label">Layer 3</div>
+            <figure>
+              <img src="img/out/blended/football_3.jpg" alt="" />
+            </figure>
+            <figure>
+              <img src="img/out/blended/watermelon_3.jpg" alt="" />
+            </figure>
+            <figure>
+              <img src="img/out/blended/football_watermelon_3.jpg" alt="" />
+            </figure>
+
+            <div class="side-label">Layer 4<br /> (Low Pass Gaussian)</div>
+            <figure>
+              <img src="img/out/blended/football_5.jpg" alt="" />
+            </figure>
+            <figure>
+              <img src="img/out/blended/watermelon_5.jpg" alt="" />
+            </figure>
+            <figure>
+              <img src="img/out/blended/football_watermelon_5.jpg" alt="" />
+            </figure>
+
+            <div class="side-label">Combined</div>
+            <figure>
+              <img src="img/out/blended/football_collapsed.jpg" alt="" />
+            </figure>
+            <figure>
+              <img src="img/out/blended/watermelon_collapsed.jpg" alt="" />
+            </figure>
+            <figure>
+              <img src="img/out/blended/blended_football_watermelon.jpg" alt="" />
+            </figure>
+          </div>
+        </div>
+      </section>
+      <script>
+        const figs = document.querySelectorAll(".toggle-sharp");
+        figs.forEach((fig) => {
+          const img = fig.querySelector("img");
+          const label = fig.querySelector("figcaption");
+
+          const originalLabel = label.innerText;
+
+          const imgSrc = img.src;
+          const imgSrcOriginal = imgSrc.replace("_sharpened", "");
+
+          img.addEventListener("mouseover", (e) => {
+            img.src = imgSrcOriginal;
+            label.innerText = "Original";
+          });
+          img.addEventListener("mouseout", (e) => {
+            img.src = imgSrc;
+            label.innerText = originalLabel;
+          });
+        });
+      </script>
+  </body>
+</html>
