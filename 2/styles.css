@@ -104,9 +104,9 @@ figure {
   place-items: center;
 }
 
-.gallery-5 figure {
+.gallery-5 figure, .gallery-5 .side-label {
   padding: 5px;
-  width: 200px;
+  width: 100%;
 }
 
 .gallery-5 img {
@@ -121,6 +121,11 @@ figure {
 .gallery-3 figure {
   padding: 5px;
   width: 200px;
+}
+
+.gallery-3 figure, .gallery-3 .side-label {
+  padding: 5px;
+  width: 60%;
 }
 
 .gallery-3 img {
@@ -145,7 +150,18 @@ figure {
 }
 
 .gallery img {
-  width: 200px;
+  width: 300px;
+}
+
+.large figure {
+  width: 500px;
+}
+.large img {
+  width: 500px;
+}
+
+.dog img {
+  width: 100px;
 }
 
 .gallery-large figure {

@@ -51,6 +51,9 @@
         <div class="content-area">
           <h2>Part 1.2 - Derivative of Gaussian (DoG) Filter</h2>
           <p>One issue with the previous step is that the results are quite noisey and details are lost when thresholding is applied. Therefore we apply a gaussian blur to the image and repeat the same steps.</p>
+          <pre>
+      kernel_size = 11 (sigma = 1.8)
+          </pre>
           <div class="gallery-5">
             <figure>
               <img src="img/out/cameraman_gaussian.jpg" alt="" />
@@ -75,7 +78,10 @@
           </div>
           <h3>Derivative of Gaussian</h3>
           <p>Apply a gaussian blur to an image can be an expensive process. We can significantly speed the process up by applying the blur to the finite difference operators, and then convolving those with the base image. This is possible due to the commutative property of convolutions, which is due to convolutions being linear operations.</p>
-          <div class="gallery">
+          <pre>
+      kernel_size = 11 (sigma = 1.8)
+          </pre>
+          <div class="gallery dog">
             <figure>
               <img class="dog" src="img/out/dogX.jpg" alt="" />
               <figcaption>Gaussian convolved with Dx</figcaption>
@@ -116,11 +122,15 @@
           <h2>Part 2.1 - Image Sharpening</h2>
           <p>Another applications of gaussian blurring is being able to extract high frequencies. This is done using the unsharp mask filter, which is the unit impulse subtracted by the gaussian filter.</p>
           <img class="unmask" src="img/unmask.png" />
-          <p>This filter can be applied to an image and then added back onto the original image with some gain. For each of these examples we use a gain of 1 because anything higher is too ugly.</p>
+          <p>This filter can be applied to an image and then added back onto the original image with some gain.</p>
 
           <p><strong>For each of the sharpened images, you can hover over them to view the original image for an easy comparison of the effects.</strong></p>
 
           <h3>Taj Mahal</h3>
+          <pre>
+      kernel_size = 11 (sigma = 1.8)
+      sharpen_alpha = 1
+          </pre>
           <div class="gallery">
             <figure>
               <img src="img/taj.jpg" alt="" />
@@ -142,6 +152,10 @@
 
           <h3>California Spring</h3>
           <p>Here is the same algorithm run on a few pictures I took. The first is of Albert Bierstadt's <i>California Spring</i> painted in 1875.</p>
+          <pre>
+      kernel_size = 31 (sigma = 5.17)
+      sharpen_alpha = 2
+          </pre>
           <div class="gallery-large">
             <figure>
               <img src="img/out/painting.jpg" alt="" />
@@ -163,6 +177,10 @@
 
           <h3>Lisbon</h3>
           <p>The second image is Lisbon, Portugal taken from Castelo de São Jorge.</p>
+          <pre>
+      kernel_size = 21 (sigma = 3.5)
+      sharpen_alpha = 2
+          </pre>
           <div class="gallery-large">
             <figure>
               <img src="img/out/lisbon.jpg" alt="" />
@@ -192,8 +210,8 @@
           <h3>Derek and Nutmeg</h3>
           <p>These are the example images provided with the assignment.</p>
           <pre>
-            sigma1 = 10
-            sigma2 = 14
+      kernel_size1 = 60 (sigma1 = 10)
+      kernel_size2 = 84 (sigma2 = 14)
           </pre>
           <div class="gallery">
             <figure>
@@ -213,8 +231,8 @@
           <h3>Keanu Reeves, Young and Old (Failure)</h3>
           <p>I consider it a failure due to the ribbon on his suit in the older picture. It's difficult to find any range that gets rid of it. This is probably due to the fact that there is essentially nothing in that part of the image on the young picture.</p>
           <pre>
-            sigma1 = 3
-            sigma2 = 3
+      kernel_size1 = 18 (sigma1 = 3)
+      kernel_size2 = 18 (sigma2 = 3)
           </pre>
           <div class="gallery">
             <figure>
@@ -234,8 +252,8 @@
           <h3>Hank Schrader Meme</h3>
           <p>This is a pretty convenient meme image because it's already aligned and shows two extreme expressions.</p>
           <pre>
-            sigma1 = 3
-            sigma2 = 4
+      kernel_size1 = 18 (sigma1 = 3)
+      kernel_size2 = 24 (sigma2 = 4)
           </pre>
           <div class="gallery">
             <figure>
@@ -289,8 +307,11 @@
         <div class="content-area">
           <h2>Part 2.3 - Gaussian and Laplacian Stacks</h2>
           <p>Gaussian and Laplacian stacks are useful image filtering devices. Gaussian stacks are created by applying a gaussian filter to an image over and over, and saving out a copy each time. Laplacian stacks are created using the Gaussian Stack by subtracting adjacent layers to find the difference between each. This lets us extract a "band" of frequencies from the image based on the gaussian kernel size.</p>
-          <p>The gaussian kernel size is determined empirically, and in this case a <b>kernel size of 31</b> was used for this set of images.</p>
           <p>The laplacian images are shown using a normalization function that remaps the lowest and highest values in the frequency band in a range from [0, 1].</p>
+          <pre>
+      kernel_size = 31 (sigma = 5.17)
+      N = 5 (stack size)
+          </pre>
           <div class="gallery-5">
             <div class="side-label">Apple Gaussian</div>
             <figure>
@@ -313,8 +334,7 @@
               <img src="img/out/pyramids/apple_gaussian_4.jpg" alt="" />
               <figcaption>Layer 4</figcaption>
             </figure>
-          </div>
-          <div class="gallery-5">
+
             <div class="side-label">Apple Laplacian</div>
             <figure>
               <img src="img/out/pyramids/apple_laplacian_0.jpg" alt="" />
@@ -336,8 +356,7 @@
               <img src="img/out/pyramids/apple_laplacian_4.jpg" alt="" />
               <figcaption>Layer 4</figcaption>
             </figure>
-          </div>
-          <div class="gallery-5">
+
             <div class="side-label">Orange Gaussian</div>
             <figure>
               <img src="img/out/pyramids/orange_gaussian_0.jpg" alt="" />
@@ -359,8 +378,7 @@
               <img src="img/out/pyramids/orange_gaussian_4.jpg" alt="" />
               <figcaption>Layer 4</figcaption>
             </figure>
-          </div>
-          <div class="gallery-5">
+
             <div class="side-label">Orange Laplacian</div>
             <figure>
               <img src="img/out/pyramids/orange_laplacian_0.jpg" alt="" />
@@ -392,6 +410,10 @@
           <p>Multiresolution blending is a technique for combining two images. It is done by breaking the images down into their respective laplacian stacks, effectively separating various frequency bands of each image. Then each image is blended together at these different bands using a different alpha mask, which has also been blurred for each band (gaussian stack). When combined there are no visible edges or borders on the final image.</p>
           <h3>The Oraple</h3>
           <p>Here is an example of the algorithm working on the Oraple example.</p>
+          <pre>
+      kernel_size = 31 (sigma = 5.17)
+      N = 5 (stack size)
+          </pre>
           <div class="gallery">
             <figure>
               <img src="img/apple.jpeg" alt="" />
@@ -412,6 +434,10 @@
           </div>
           <h3>The Footmelon</h3>
           <p>Can we also blend fruits with non-fruits? Science says "Why not?"</p>
+          <pre>
+      kernel_size = 31 (sigma = 5.17)
+      N = 5 (stack size)
+          </pre>
           <div class="gallery">
             <figure>
               <img src="img/out/blended/football.png" alt="" />
@@ -432,7 +458,11 @@
           </div>
           <h3>The Hummingfish</h3>
           <p>If birds were real, then this wouldn't be possible... This method was done using a separate image as a mask, instead of splitting the image into two halves.</p>
-          <div class="gallery-wide">
+          <pre>
+      kernel_size = 31 (sigma = 5.17)
+      N = 5 (stack size)
+          </pre>
+          <div class="gallery-wide large">
             <figure>
               <img src="img/out/blended/bird.png" alt="" />
               <figcaption>Image 1 (Hummingbird)</figcaption>
