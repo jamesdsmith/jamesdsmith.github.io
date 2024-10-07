@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>CS280A Project 2</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="container">
+      <header class="jumbotron">
+        <div class="header">
+          <h1>Face Morphing</h1>
+          <p></p>
+          <h2>James Smith, CS 280A, Fall 2024</h2>
+        </div>
+      </header>
+
+      <section class="solution">
+        <div class="content-area">
+          <h2>Part 1 - Defining Correspondences</h2>
+          <p>Correspondences are essential for good image morphing so that we know how the shape of things in the image change.</p>
+          <p>I used the very nice tool provided by the course staff to define correspondences for this project. I made a few modifications, however. Here is a link to my version of <a href="tool/tool.html">the tool</a>.</p>
+          <p>
+            <strong>Changes to the staff-provided tool:</strong>
+            <ul>
+              <li>Changed the mode showing correspondence numbers to show it on both images. This makes it easier to verify points.</li>
+              <li>Added a new "Move" mode that allows you to click on a correspondence point and move it to a new location. Hit M to enter this mode.</li>
+              <li>Added a new option to add a correspondence point to the right image when the left one is clicked. This combined with the move mode makes create correspondences much faster because you can batch your work, and it eliminates mouse moves significantly (hey, I'm an HCI grad student, I care about stuff like that).</li>
+            </ul>
+          </p>
+          <p>I specified <strong>98 correspondence points</strong>. I initially had about 60, but after getting further in the project I noticed a few places where points could be added to improve the animation. The points can be viewed in this <a href="drake_obama.json">JSON file</a>, which can also be loaded into <a href="tool/tool.html">the tool</a> with the two images below.</p>
+          <p>A halfway point was computed for each pair of correspondence points and a Delaunay Triangulation was computed for the set of points. The midway point was chosen to not bias the triangulation to one image. The triangulation was applied to the correspondence points for each image to create the images below.</p>
+          <div class="gallery-2">
+            <figure>
+              <img src="img/drake.png" alt="" />
+              <figcaption>Image of Drake</figcaption>
+            </figure>
+            <figure>
+              <img src="img/obama.png" alt="" />
+              <figcaption>Image of Barack Obama</figcaption>
+            </figure>
+            <figure>
+              <img src="img/im1.jpg" alt="" />
+              <figcaption>Image of Drake with correspondence points and triangulation drawn</figcaption>
+            </figure>
+            <figure>
+              <img src="img/im2.jpg" alt="" />
+              <figcaption>Image of Barack Obama with correspondence points and triangulation drawn</figcaption>
+            </figure>
+          </div>
+        </div>
+      </section>
+
+      <section class="solution">
+        <div class="content-area">
+          <h2>Part 2 - Computing the "Mid-Way Face"</h2>
+          <p>Before computing the morph between the two faces, we compute it for one face. We first get the morphed geometry (points) at the halfway point. This is done with a simple cross dissolve method that is used in several parts of this project.</p>
+          <pre>
+  def cross_dissolve(pts1, pts2, alpha):
+    return (1 - alpha) * pts1 + alpha * pts2
+          </pre>
+          <p>For each triangle in the triangulation, we compute an Affine Transformation that converts from the start image to the mid-way, and the end image to the mid-way. The affune transformation from some point p to a point q is defined as follows:</p>
+          <img src="img/eqn1.png" alt="" class="inline-img" />
+          <p>This system of equations can be rewritten into the following form by expanding out the dot products (left as an exercise for the reader).</p>
+          <img src="img/eqn2.png" alt="" class="inline-img" />
+          <p>This new matrix can be inverted and applied to both sides of this equation, giving us the solutions for the affine parameters.</p>
+          <p>To find the pixel values for each triangle, the inverse of the affine transformation is applied to each pixel in the target triangle (which was computed using sk.draw.polygon). No interpolation was used when looking up pixel values from the source images.</p>
+          <p>Each image was then blended together using the same cross_disolve method, but now on the pixel values instead of correspondence points.</p>
+          <div class="gallery-3">
+            <figure>
+              <img src="img/im1_morphed.jpg" alt="" />
+              <figcaption>Drake transformed into the geometry of the mid-way face.</figcaption>
+            </figure>
+            <figure>
+              <img src="img/im3_clean.jpg" alt="" />
+              <figcaption>The final blended image.</figcaption>
+            </figure>
+            <figure>
+              <img src="img/im2_morphed.jpg" alt="" />
+              <figcaption>Obama transformed into the geometry of the mid-way face.</figcaption>
+            </figure>
+          </div>
+        </div>
+      </section>
+
+      <section class="solution">
+        <div class="content-area">
+          <h2>Part 3 - The Morph Sequence</h2>
+          <p>The previous step was abstracted into a method and computed for a bunch of different midway points. A range of alpha values were used to compute 30 different mid-way faces, allowing us to transition smoothly between the two faces. This animation was created by reversing and stacking the blend back to back.</p>
+          <div class="gallery-1">
+            <figure>
+              <img src="img/morph.gif" alt="" />
+              <figcaption>Morphed face!</figcaption>
+            </figure>
+          </div>
+        </div>
+      </section>
+
+      <section class="solution">
+        <div class="content-area">
+          <h2>Part 4 - The "Mean Face" of a Population</h2>
+          <p>We can compute the "average face" of a population of people given enough pictures of people from that population. For this we use the <a href="https://web.archive.org/web/20210305094647/http://www2.imm.dtu.dk/~aam/datasets/datasets.html">IMM Dataset</a> of Danish people (the initially released dataset of 37 faces).</p>
+          <p>Like before we can compute an average geometry for each of the faces by taking the mean position of each correspondence point (which is provided by the dataset).</p>
+          <div class="gallery-1">
+            <figure>
+              <img src="img/danes/triangulation.jpg" alt="" />
+              <figcaption>Mean face geometry and triangulation</figcaption>
+            </figure>
+          </div>
+          <p>Using this mean geometry, we can then morph each of the faces in the dataset into the mean face. Here is one example.</p>
+          <div class="gallery-2">
+            <figure>
+              <img src="img/danes/01-1m.jpg" alt="" />
+              <figcaption>01-1m</figcaption>
+            </figure>
+            <figure>
+              <img src="img/danes/01-1m_morphed.jpg" alt="" />
+              <figcaption>01-1m morphed</figcaption>
+            </figure>
+          </div>
+          <p>We can see that there is quite a bit of warping along the top of the head. I wanted to fix this, and I realized that the issue was due to the triangulation stretching the triangles in that area. I inserted a few "fake correspondence points" into each image into the top of the image to prevent elongated triangles stretching over the faces. This changes the mean triangulation.</p>
+          <div class="gallery-1">
+            <figure>
+              <img src="img/danes/triangulation_fixed.jpg" alt="" />
+              <figcaption>Triangulation with a few extra points added to aid with interpolation</figcaption>
+            </figure>
+          </div>
+          <p>We can also look at the before and after of the previous picture.</p>
+          <div class="gallery-2">
+            <figure>
+              <img src="img/danes/01-1m_morphed.jpg" alt="" />
+              <figcaption>01-1m morphed with old triangulation</figcaption>
+            </figure>
+            <figure>
+              <img src="img/danes/01-1m_morphed_fixed.jpg" alt="" />
+              <figcaption>01-1m morphed with new triangulation</figcaption>
+            </figure>
+          </div>
+          <p>Much better! We will also look at how this affects some later results. For now, lets look at a few more morphed Dane examples.</p>
+          <div class="gallery-2">
+            <figure>
+              <img src="img/danes/12-1f.jpg" alt="" />
+              <figcaption>12-1f</figcaption>
+            </figure>
+            <figure>
+              <img src="img/danes/12-1f_morphed_fixed.jpg" alt="" />
+              <figcaption>12-1f morphed with fixed triangulation</figcaption>
+            </figure>
+            <figure>
+              <img src="img/danes/22-1f.jpg" alt="" />
+              <figcaption>22-1f</figcaption>
+            </figure>
+            <figure>
+              <img src="img/danes/22-1f_morphed_fixed.jpg" alt="" />
+              <figcaption>22-1f morphed</figcaption>
+            </figure>
+            <figure>
+              <img src="img/danes/31-1m.jpg" alt="" />
+              <figcaption>31-1m</figcaption>
+            </figure>
+            <figure>
+              <img src="img/danes/31-1m_morphed_fixed.jpg" alt="" />
+              <figcaption>31-1m morphed</figcaption>
+            </figure>
+          </div>
+          <p>Here is a gif file I made showing all of the morphed faces</p>
+          <div class="gallery-1">
+            <figure>
+              <img src="img/danes/danes_morph_fixed.gif" alt="" />
+              <figcaption>All of the morphed faces in the IMM dataset</figcaption>
+            </figure>
+          </div>
+          <p>If we take the average of all of these morphed faces, we get the mean face in the IMM dataset. Lets look at both versions (the "fixed" triangulation and the original) to see if the alteration had any effect.</p>
+          <div class="gallery-2">
+            <figure>
+              <img src="img/danes/danes_avg.jpg" alt="" />
+              <figcaption>The mean face of the IMM dataset</figcaption>
+            </figure>
+            <figure>
+              <img src="img/danes/danes_avg_fixed.jpg" alt="" />
+              <figcaption>The mean face of the IMM dataset with the fixed triangulation</figcaption>
+            </figure>
+          </div>
+          <p>Looking at this result, it doesn't actually change the value of the mean face much because all of those errors would average out. Oh well, maybe it will have an effect on the next experiment.</p>
+          <p>I took a picture of myself and created a correspondence with the points in the dataset. This was done using the same <a href="tool/tool.html">tool</a> as before. I loaded the triangulation image from above and clicked on each point in the order they were defined in the dataset (this was verified manuall). Then I moved the points to match my face. Here is a link to the <a href="triangulation_james.json">JSON file</a> with my correspondence points, which can be loaded in the tool with the triangulation image from above and the picture of me from below.</p>
+          <div class="gallery-2">
+            <figure>
+              <img src="img/james.png" alt="" />
+              <figcaption>Image of James</figcaption>
+            </figure>
+            <figure>
+              <img src="img/danes/james_tri_fixed.jpg" alt="" />
+              <figcaption>Triangulation of James</figcaption>
+            </figure>
+          </div>
+          <p>Now we morph my face to the mean Danish face geometry. Also we morph the mean Danish face to my geometry. The artifacts on the top of the head are due to the fact that there are no correspondences in the dataset along the top of the head, so the long triangles present on the top of the image lead to artifacts.</p>
+          <div class="gallery-2">
+            <figure>
+              <img src="img/danes/james_to_mean_fixed.jpg" alt="" />
+              <figcaption>James as a Dane (Probably named James Jameson)</figcaption>
+            </figure>
+            <figure>
+              <img src="img/danes/mean_to_james.jpg" alt="" />
+              <figcaption>Average Danish person as James</figcaption>
+            </figure>
+          </div>
+          <p>Did the fixed triangulation have any effect here? Let's look at both morphs of my face.</p>
+          <div class="gallery-2">
+            <figure>
+              <img src="img/danes/james_to_mean_fixed.jpg" alt="" />
+              <figcaption>Morph with the fixed triangulation</figcaption>
+            </figure>
+            <figure>
+              <img src="img/danes/james_to_mean.jpg" alt="" />
+              <figcaption>Morph with the original triangulation</figcaption>
+            </figure>
+          </div>
+          <p>The results here are significalty better. This implies that for individual results and experiments, better triangulations are more important because imperfections don't get averaged away.</p>
+        </div>
+      </section>
+
+      <section class="solution">
+        <div class="content-area">
+          <h2>Part 5 - Caricatures: Extrapolating from the mean</h2>
+          <p>For the previous result we morphed my face to the mean Danish face geometry. We can also morph in the opposite direction, emphasizing the differences between my face and the mean. I'm sure this won't be cursed.</p>
+          <div class="gallery-1">
+            <figure>
+              <img src="img/danes/james_caricature.jpg" alt="" />
+              <figcaption>It's cursed</figcaption>
+            </figure>
+          </div>
+        </div>
+      </section>
+
+      <section class="solution">
+        <div class="content-area">
+          <h2>Part 6 - Bells and Whistles: Gender Change</h2>
+          <p>We can explore how to use these images to change my gender. We will present 3 approaches: One with the geometry of my face changed to match the geometry of the female face. One which is a blend of the appearences of the two faces. One which is the morph between the two faces.</p>
+          <div class="gallery-2">
+            <figure>
+              <img src="img/averagespaniardfemale.jpg" alt="" />
+              <figcaption>Average Spaniard Female</figcaption>
+            </figure>
+            <figure>
+              <img src="img/james_2.png" alt="" />
+              <figcaption>Picture of James</figcaption>
+            </figure>
+          </div>
+          <p>To blend the geometry, we compute a triangulation of the average points of my face and the spanish female face (correspondence file <a href="averagespaniardfemale_james_2.json">here</a>, computed using the above 2 images). Then we do a morph with no appearence blending, fully morphing the geometry of my face to that of the female.</p>
+          <p>To blend only the appearence, first the spanish female's geometry is morphed to my face geometry. Then an appearence blend of 0.5 is applied to the two images.</p>
+          <p>To morph both, a mid-way face is computing by finding the mid-way geometry and mid-way appearence (geometry and appearence alpha of 0.5).</p>
+          <div class="gallery-3">
+            <figure>
+              <img src="img/gender/james_shape.jpg" alt="" />
+              <figcaption>Geometry blending</figcaption>
+            </figure>
+            <figure>
+              <img src="img/gender/james_spain_appearance.jpg" alt="" />
+              <figcaption>Appearence blending</figcaption>
+            </figure>
+            <figure>
+              <img src="img/gender/james_spain_morph.jpg" alt="" />
+              <figcaption>Geometry and appearence</figcaption>
+            </figure>
+          </div>
+        </div>
+      </section>
+      <script>
+      </script>
+  </body>
+</html>

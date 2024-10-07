@@ -56,6 +56,12 @@ h1 {
   background-position: 50% 25%;
 }
 
+.proj3 .image {
+  background-image: url("3/img/morph.gif");
+  background-size: cover;
+  background-position: 50% 25%;
+}
+
 .project-card .label {
   padding: 20px;
   font-weight: bold;
