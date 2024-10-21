@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>CS280A Project 4a</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="container">
+      <header class="jumbotron">
+        <div class="header">
+          <h1>Image Warping and Mosaicing</h1>
+          <p></p>
+          <h2>James Smith, CS 280A, Fall 2024</h2>
+        </div>
+      </header>
+
+      <section class="solution">
+        <div class="content-area">
+          <h2>Shooting Pictures</h2>
+          <p>To create a mosaic we first need a few sets of pictures.</p>
+
+          <h3>Pittsburgh</h3>
+          <p>These pictures were taken in Pittsburgh during the <a href="https://uist.acm.org/2024/">UIST 2024</a> conference (where I was sweating having to work on this project until the course staff graciously extended the project) at the <a href="https://maps.app.goo.gl/2XywXEVJSCAs9G3T6">Allegheny Landing Park</a>.</p>
+          <div class="gallery-3">
+            <figure>
+              <img src="img/pitt2.png" alt="" />
+              <figcaption>pitt2.png</figcaption>
+            </figure>
+            <figure>
+              <img src="img/pitt3.png" alt="" />
+              <figcaption>pitt3.png</figcaption>
+            </figure>
+            <figure>
+              <img src="img/pitt4.png" alt="" />
+              <figcaption>pitt4.png</figcaption>
+            </figure>
+          </div>
+          <p></p>
+
+          <h3>San Francisco Street</h3>
+          <p>These pictures were taken on a street in San Francisco. I may or may not live in one of these houses</p>
+          <div class="gallery-3">
+            <figure>
+              <img src="img/street1.png" alt="" />
+              <figcaption>street1.png</figcaption>
+            </figure>
+            <figure>
+              <img src="img/street2.png" alt="" />
+              <figcaption>street2.png</figcaption>
+            </figure>
+            <figure>
+              <img src="img/street3.png" alt="" />
+              <figcaption>street3.png</figcaption>
+            </figure>
+          </div>
+          <p></p>
+
+          <h3>Berkeley Campus</h3>
+          <p>These pictures were taken on the UC Berkeley campus from the CV Starr East Asian Library.</p>
+          <div class="gallery-3">
+            <figure>
+              <img src="img/berkeley1.png" alt="" />
+              <figcaption>berkeley1.png</figcaption>
+            </figure>
+            <figure>
+              <img src="img/berkeley2.png" alt="" />
+              <figcaption>berkeley2.png</figcaption>
+            </figure>
+            <figure>
+              <img src="img/berkeley3.png" alt="" />
+              <figcaption>berkeley3.png</figcaption>
+            </figure>
+          </div>
+        </div>
+      </section>
+
+      <section class="solution">
+        <div class="content-area">
+          <h2>Compute Homographies, Warp Images</h2>
+          <h3>Homography</h3>
+          <p>The goal is to get the matrix H, which is defined by 8 parameters: <code>a, b, c, d, e, f, g, h</code> that satisfies this equation (for a single point).</p>
+          <img src="img/eqn1.png" alt="" class="inline-img" />
+          <p>If we expand this, we get the following equations.</p>
+          <img src="img/eqn2.png" alt="" class="inline-img" />
+          <p>Now we can pull the parameters of the H matrix into a vector and leave the points in matrix form</p>
+          <img src="img/eqn3.png" alt="" class="inline-img" />
+          <p>Note that we need to make one of these for every point in the correspondance. If we specify exactly 4 points that gives us enough equations to solve for the 8 unknowns, but we can make our solution a little more robust to noise by specify more points and using Least Squares to solve the the coefficients.</p>
+          <p>Once we've solved the equation, we construct the H matrix.</p>
+          <h3>Warping</h3>
+          <p>Now that we have the homography matrix, we can warp one image into the space of another image by applying it. First the corners of the image are warped so that we can determine the size of the destination warp. We compute a polygon mask from these points as well, to help fill in the image in the destination later. A min X and Y value are computed to determine the offset of the warped image. This is added to the homography matrix so that when we do the inverse warp, it will find the pixel values in the right location.</p>
+          <p>We use the <code>scipy.interpolate.griddata</code> function to interpolate values when doing the inverse warp. We pass in the values of the polygon into this function to sample the source pixels, and copy them to the destination polygon.</p>
+        </div>
+      </section>
+
+      <section class="solution">
+        <div class="content-area">
+          <h2>Rectification</h2>
+          <p>We can use the homography and warp functions to do an image rectification. This is where we take an image with a rectangular shape in it, and reproject that shape into a rectangle so we can see it strait on. The corners of the square were picked using the <a href="tool/tool.html">correspondence tool</a>, except the same image was used for both. The "correspondance" points on the second image were just set to be a square. I also manually cropped the images so to get a better view of the outcome, because the distorted rectified images were quite large.</p>
+          
+          <h3>Cabinet from Pena</h3>
+          <p>This image was taken in the National Palace of Pena in Portugal. It is an ornate cabinet but I could not get a picture strait on because it was blocked. The computed correspondence file is <a href="cabinet_cabinet.json">here</a>.</p>
+          <div class="gallery-3">
+            <figure>
+              <img src="img/cabinet.png" alt="" />
+              <figcaption>Cabinet in Pena Castle</figcaption>
+            </figure>
+            <figure>
+              <img src="img/cabinet_warped.png" alt="" />
+              <figcaption>Rectified Image</figcaption>
+            </figure>
+            <figure>
+              <img src="img/cabinet_cropped.png" alt="" />
+              <figcaption>Cropped Image</figcaption>
+            </figure>
+          </div>
+
+          <h3>Mosaic Floor</h3>
+          <p>Because we are working on image mosaics, I thought I would use this picture of a floor mosaic also taken in Portugal. This one was taken at Quinta de Regaleira, a weird occult manor. The computed correspondence file is <a href="floor_floor.json">here</a>.</p>
+          <div class="gallery-3">
+            <figure>
+              <img src="img/floor.png" alt="" />
+              <figcaption>Cabinet in Pena Castle</figcaption>
+            </figure>
+            <figure>
+              <img src="img/floor_warped.png" alt="" />
+              <figcaption>Rectified Image</figcaption>
+            </figure>
+            <figure>
+              <img src="img/floor_cropped.png" alt="" />
+              <figcaption>Cropped Image</figcaption>
+            </figure>
+          </div>
+        </div>
+      </section>
+
+      <section class="solution">
+        <div class="content-area">
+          <h2>Image Mosaics</h2>
+          <p>We can now use the warp function to blend multiple overlapping images into a larger mosaic.</p>
+          <p>Correspondences between the images were manually computed using the <a href="tool/tool.html">tool provided by the course staff</a> (with some modifications made by me in the last project). A set of correspondences between each pair of images was created. Here is the same images plotted with each set of correspondences in a different color.</p>
+          <p><strong>16 pairs of correspondences</strong> were computed between each image. These will be used in the next section to determine the homography between each image.</p>
+          <h3>Pittsburgh</h3>
+          <p>Here is a link to the two correspondance files: <a href="pitt2_pitt3.json">file1</a>, <a href="pitt3_pitt4.json">file2</a></p>
+          <div class="gallery-3">
+            <figure>
+              <img src="img/pitt2_points.png" alt="" />
+              <figcaption>pitt2.png with correspondances</figcaption>
+            </figure>
+            <figure>
+              <img src="img/pitt3_points.png" alt="" />
+              <figcaption>pitt3.png with correspondances</figcaption>
+            </figure>
+            <figure>
+              <img src="img/pitt4_points.png" alt="" />
+              <figcaption>pitt4.png with correspondances</figcaption>
+            </figure>
+          </div>
+
+          <p>Now the two side images can be projected into the image space of the middle image by computing a homography transform for each. A total image size is computed by warping the corners of each image and then a min and max is taken across all corners to determine the final image size. Then each image is copied into it's own version of the final image so they can be blended easily.</p>
+          <div class="gallery-3">
+            <figure>
+              <img src="img/pitt2_final.png" alt="" />
+              <figcaption>pitt2 in the final image position</figcaption>
+            </figure>
+            <figure>
+              <img src="img/pitt3_final.png" alt="" />
+              <figcaption>pitt3 in the final image position</figcaption>
+            </figure>
+            <figure>
+              <img src="img/pitt4_final.png" alt="" />
+              <figcaption>pitt4 in the final image position</figcaption>
+            </figure>
+          </div>
+
+          <p>If we simply stack these layers into a final image, we can see the output will have seams where the images meet</p>
+          <div class="gallery-1">
+            <figure>
+              <img src="img/pitt_mosaic_unblended.png" alt="" />
+              <figcaption>Pittsburgh Mosaic, Unblended</figcaption>
+            </figure>
+          </div>
+
+          <p>To fix this we can use a more sophisticated blending. First, blending masks are created based on the position of the images in the final mosaic. Then the <code>scipy.ndimage.distance_transform_edt</code> function is used to compute a mask that contains the distance to the nearest edge (based on the function presented in the lecture, <code>bwdist</code>).</p>
+          <div class="gallery-3">
+            <figure>
+              <img src="img/pitt2_final_mask.png" alt="" />
+              <figcaption>pitt2 blend mask</figcaption>
+            </figure>
+            <figure>
+              <img src="img/pitt3_final_mask.png" alt="" />
+              <figcaption>pitt3 blend mask</figcaption>
+            </figure>
+            <figure>
+              <img src="img/pitt4_final_mask.png" alt="" />
+              <figcaption>pitt4 blend mask</figcaption>
+            </figure>
+          </div>
+
+          <p>These masks will be used to blend the images in two frequencies. We compute the low frequencies by applying a gaussian filter with a 41 pixel kernel size. The high frequencies are computer by subtracting the low frequencies from the original image.</p>
+          <p><b>High Frequencies:</b> To blend the high frequency parts of the image, we blend by looking for the mask that contains the higher value. This allows us to avoid ghosting of high frequency infomation by choosing the high frequency info from one image or the other.</p>
+          <p><b>Low Frequency:</b> To blend low frequencies, the masks are used as part of a weighted sum calcultion. A total "weight" at each pixel is calcualted by summing up the masks, and each pixel is blended as a ratio of the mask to the total "weight" at that pixel. Note that this is only done where there is actual pixel information to avoid dividing by the total weight where it is 0.</p>
+          <p><code>high_freq = imA * maskA / totalWeight + imB * maskB / totalWeight + imC * maskC / totalWeight</code></p>
+          <p>The final high and low frequency parts are summed for the final output.</p>
+          <div class="gallery-1">
+            <figure>
+              <img src="img/pitt_mosaic_blended.png" alt="" />
+              <figcaption>Final Pittsburgh Mosaic</figcaption>
+            </figure>
+          </div>
+
+          <p>For the rest of the results we will just show the correspondances, unblended mosaic, and blended mosaic, but the same process was used.</p>
+
+          <h3>San Francisco Street</h3>
+          <p>Let's test the limits of this algorithm with a set of images that have very different exposure. Here are the correspondance files for this scene: <a href="street1_street2.json">file1</a>, <a href="street2_street3.json">file2</a>.</p>
+          <div class="gallery-3">
+            <figure>
+              <img src="img/street1_points.png" alt="" />
+              <figcaption>street1.png with correspondances</figcaption>
+            </figure>
+            <figure>
+              <img src="img/street2_points.png" alt="" />
+              <figcaption>street2.png with correspondances</figcaption>
+            </figure>
+            <figure>
+              <img src="img/street3_points.png" alt="" />
+              <figcaption>street3.png with correspondances</figcaption>
+            </figure>
+          </div>
+          <div class="gallery-1">
+            <figure>
+              <img src="img/street_mosaic_unblended.png" alt="" />
+              <figcaption>San Francisco Street Mosaic, Unblended</figcaption>
+            </figure>
+          </div>
+          <div class="gallery-1">
+            <figure>
+              <img src="img/street_mosaic_blended.png" alt="" />
+              <figcaption>Final San Francisco Street Mosaic</figcaption>
+            </figure>
+          </div>
+          <p>This one was a challenge because of the extreme differences in exposure, but the blended version actually does a fairly good job at removing the seams.</p>
+
+          <h3>Berkeley Campus</h3>
+          <p>Here are the correspondance files for this scene: <a href="berkeley1_berkeley2.json">file1</a>, <a href="berkeley2_berkeley3.json">file2</a>.</p>
+          <div class="gallery-3">
+            <figure>
+              <img src="img/berkeley1_points.png" alt="" />
+              <figcaption>berkeley1.png with correspondances</figcaption>
+            </figure>
+            <figure>
+              <img src="img/berkeley2_points.png" alt="" />
+              <figcaption>berkeley2.png with correspondances</figcaption>
+            </figure>
+            <figure>
+              <img src="img/berkeley3_points.png" alt="" />
+              <figcaption>berkeley3.png with correspondances</figcaption>
+            </figure>
+          </div>
+          <div class="gallery-1">
+            <figure>
+              <img src="img/berkeley_mosaic_unblended.png" alt="" />
+              <figcaption>Berkeley Campus Mosaic, Unblended</figcaption>
+            </figure>
+          </div>
+          <div class="gallery-1">
+            <figure>
+              <img src="img/berkeley_mosaic_blended.png" alt="" />
+              <figcaption>Final Berkeley Campus Mosaic</figcaption>
+            </figure>
+          </div>
+        </div>
+      </section>
+
+      <script>
+      </script>
+  </body>
+</html>
