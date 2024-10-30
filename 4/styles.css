@@ -149,9 +149,9 @@ figure,
   max-width: 100%;
 }
 
-.gallery-2 figure {
+/* .gallery-2 figure {
   max-width: 500px;
-}
+} */
 
 img {
   width: 100%;
@@ -221,4 +221,8 @@ section p {
 .content-area {
   flex-grow: 1;
   padding: 10px;
+}
+
+pre {
+  white-space: pre-wrap;
 }
