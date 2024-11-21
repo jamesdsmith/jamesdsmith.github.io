@@ -790,11 +790,11 @@
           <div class="gallery-2 half">
             <figure>
               <img src="img/visual_anagram_c_1.png" alt="" />
-              <figcaption>a photo of a hipster barista</figcaption>
+              <figcaption>a man wearing a hat</figcaption>
             </figure>
             <figure>
               <img src="img/visual_anagram_c_2.png" alt="" />
-              <figcaption>a lithograph of a skull</figcaption>
+              <figcaption>a lithograph of waterfalls</figcaption>
             </figure>
           </div>
         </div>
@@ -810,6 +810,20 @@
             interpretations at different scale or viewing distance. On the left I've just scaled the identical image in
             order to make it easier to see the low pass prompt.
           </p>
+          <p>
+            For this part, I decided to <b>generate some custom text embeddings</b> for the second and third images.
+          </p>
+          <pre>
+    First Pair:
+      low pass: a lithograph of a skull
+      high pass: a lithograph of waterfalls
+    Second Pair:
+      low pass: a closeup picture of albert einstein's face
+      high pass: a black and white photo of the grand canyon
+    Third Pair:
+      low pass: a lithograph of a pig
+      high pass: an oil painting of a town in a forest
+          </pre>
           <div class="gallery-2 half">
             <figure>
               <img src="img/hybrid_a.png" alt="" />
