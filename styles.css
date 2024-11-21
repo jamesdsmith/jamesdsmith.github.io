@@ -68,6 +68,12 @@ h1 {
   background-position: 50% 25%;
 }
 
+.proj5 .image {
+  background-image: url("5/img/background.png");
+  background-size: cover;
+  background-position: 50% 60%;
+}
+
 .project-card .label {
   padding: 20px;
   font-weight: bold;
